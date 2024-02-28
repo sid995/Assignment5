@@ -8,5 +8,5 @@ class DivideCommand(Command):
     
     def execute(self):
         if self.operand2 == 0:
-            return "Error: Division by zero"
+            raise ZeroDivisionError("Division by zero is not allowed.")
         return self.operand1 / self.operand2
