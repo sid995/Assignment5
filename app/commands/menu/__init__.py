@@ -6,3 +6,4 @@ class MenuCommand:
         print("Available commands:")
         for command in self.available_commands:
             print(f" - {command}")
+        print(" - menu")
