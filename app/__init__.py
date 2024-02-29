@@ -40,7 +40,6 @@ class App:
         self.command_handler.register_command('subtract', SubtractCommand)
         self.command_handler.register_command('multiply', MultiplyCommand)
         self.command_handler.register_command('divide', DivideCommand)
-        # self.command_handler.register_command('menu', MenuCommand(list(self.command_handler.get_keys())))
 
 
     def get_user_input(self):
@@ -49,11 +48,33 @@ class App:
 
     def parse_input(self, input_str):
         parts = input_str.split()
-        if parts[0] == "menu":
-            return parts[0], None, None
-        if len(parts) != 3:
-            raise ValueError("Invalid input format. Expected: command operand1 operand2")
-        return parts[0], float(parts[1]), float(parts[2])
+        command = parts[0]
+
+        # For the 'menu' command or any command not requiring operands
+        if command == "menu" or len(parts) == 1:
+            return command, []
+
+        # Handle the case with one operand
+        elif len(parts) == 2:
+            try:
+                operand = float(parts[1])
+            except ValueError:
+                raise ValueError("Invalid input format. Expected a numeric value for the operand.")
+            return command, [operand]
+
+        # Handle the case with two operands
+        elif len(parts) == 3:
+            try:
+                operand1 = float(parts[1])
+                operand2 = float(parts[2])
+            except ValueError:
+                raise ValueError("Invalid input format. Expected numeric values for operands.")
+            return command, [operand1, operand2]
+
+        else:
+            raise ValueError("Invalid input format. Expected: command [operand1] [operand2]")
+
+
     
 
     def display_menu(self):
@@ -69,7 +90,7 @@ class App:
                 break
 
             try:
-                command, *operands = self.parse_input(user_input)
+                command, operands = self.parse_input(user_input)
                 if command == 'menu':
                     self.display_menu()
                 else:
