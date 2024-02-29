@@ -1,7 +1,10 @@
-from app.commands.add import AddCommand
-from app.commands.divide import DivideCommand
-from app.commands.multiply import MultiplyCommand
-from app.commands.subtract import SubtractCommand
+import importlib
+import pkgutil
+from app.commands import Command
+from app.operations.add import AddCommand
+from app.operations.divide import DivideCommand
+from app.operations.multiply import MultiplyCommand
+from app.operations.subtract import SubtractCommand
 from app.commands.menu import MenuCommand
 from app.commandhandler import CommandHandler
 
@@ -9,7 +12,27 @@ from app.commandhandler import CommandHandler
 class App:
     def __init__(self):
         self.command_handler = CommandHandler()
+        self.discover_and_load_plugins()
         self.register_commands()
+
+
+    def discover_and_load_plugins(self):
+        plugin_path = "app.plugins"
+        module_info = pkgutil.iter_modules(importlib.import_module(plugin_path).__path__)
+        for _, name, _ in module_info:
+            imported_module = importlib.import_module(f"{plugin_path}.{name}")
+            for attribute_name in dir(imported_module):
+                attribute = getattr(imported_module, attribute_name)
+                try:
+                    if issubclass(attribute, Command) and attribute is not Command:
+                        # Remove 'Command' from the end of the class name if present
+                        command_name = attribute.command_name if hasattr(attribute, 'command_name') else attribute_name
+                        if command_name.endswith('Command'):
+                            command_name = command_name[:-7].lower()
+                        self.command_handler.register_command(command_name, attribute)
+                except TypeError:
+                    # This means that the attribute is not a class, ignore
+                    continue
 
 
     def register_commands(self):
@@ -17,7 +40,7 @@ class App:
         self.command_handler.register_command('subtract', SubtractCommand)
         self.command_handler.register_command('multiply', MultiplyCommand)
         self.command_handler.register_command('divide', DivideCommand)
-        self.command_handler.register_command('menu', MenuCommand(list(self.command_handler.get_keys())))
+        # self.command_handler.register_command('menu', MenuCommand(list(self.command_handler.get_keys())))
 
 
     def get_user_input(self):
